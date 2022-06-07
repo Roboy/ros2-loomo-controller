@@ -1,25 +1,55 @@
 package com.example.ros2_android_test_app;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.LinkProperties;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.segway.robot.sdk.base.bind.ServiceBinder;
+import com.segway.robot.sdk.locomotion.sbv.Base;
+
 import org.ros2.rcljava.RCLJava;
 
-public class MainActivity extends ROSActivity {
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
+public class MainActivity extends ROSActivity implements CompoundButton.OnCheckedChangeListener {
+    public static final String TAG = "MainRosActivity";
+
+//    private Vision mVision;
+//    private Sensor mSensor;
+    private Base mBase;
+
+//    private Button mKillAppButton;
+//    private Button mTimeOffsetButton;
+
+    //    public NtpTimeProvider mNtpTimeProvider;
+//    private NtpTimeProvider ntpTimeProvider;
+
+    private Switch mPubRsColorSwitch;
+    private Switch mPubRsDepthSwitch;
+    private Switch mPubFisheyeSwitch;
+    private Switch mPubSensorSwitch;
+
+    private Switch mPubTFSwitch;
+//    private RealsensePublisher mRealsensePublisher;
+//    private TFPublisher mTFPublisher;
+    private LoomoBaseRosListenerBinder loomoBaseRosListenerBinder;
+//
+//    private SensorPublisher mSensorPublisher;
+
+    private LoomoRosListenerNode loomoRosListenerNode;
+
+    private Queue<Long> mDepthStamps;
+
+    // loading params from yaml file
+    private final NodeParams params = Utils.loadParams();
 
     private static final String IS_WORKING_TALKER = "isWorkingTalker";
     private static final String IS_WROKING_LISTENER = "isWorkingListener";
@@ -39,114 +69,83 @@ public class MainActivity extends ROSActivity {
     /** Called when the activity is first created. */
     @Override
     public final void onCreate(final Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate() called");
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setContentView(R.layout.loomo_ros2_controller);
 
-        if (savedInstanceState != null) {
-            isWorkingListener = savedInstanceState.getBoolean(IS_WROKING_LISTENER);
-            isWorkingTalker = savedInstanceState.getBoolean(IS_WORKING_TALKER);
-        }
+//        final WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//        lock = wifi.createMulticastLock("ssdp");
+//        lock.acquire();
 
-        /*
-        WifiManager wifi = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifi != null){
-            WifiManager.MulticastLock lock = wifi.createMulticastLock("HelloAndroid");
-            lock.acquire();
-        }
+        // Add a button to show the NTP time offset when clicked
+//        mTimeOffsetButton = (Button) findViewById(R.id.timeoffset);
+//        mTimeOffsetButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                // Toast message that displays NTP time offset in app
+//                Toast toast = Toast.makeText(getApplicationContext(), "NTP time offset: " + Math.round(System.currentTimeMillis() - ntpTimeProvider.getCurrentTime().toSeconds()*1000) + " ms", Toast.LENGTH_LONG);
+//                toast.show();
+//            }
+//        });
 
-         */
-        final WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        lock = wifi.createMulticastLock("ssdp");
-        lock.acquire();
+        // Add some switches to turn on/off sensor publishers
+        mPubRsColorSwitch = (Switch) findViewById(R.id.rscolor);
+        mPubRsDepthSwitch = (Switch) findViewById(R.id.rsdepth);
+        mPubFisheyeSwitch = (Switch) findViewById(R.id.fisheye);
+        mPubTFSwitch = (Switch) findViewById(R.id.tf);
+        mPubSensorSwitch = (Switch) findViewById(R.id.sensor);
 
-        Button listenerStartBtn = (Button)findViewById(R.id.listenerStartBtn);
-        listenerStartBtn.setOnClickListener(startListenerListener);
-        Button listenerStopBtn = (Button)findViewById(R.id.listenerStopBtn);
-        listenerStopBtn.setOnClickListener(stopListenerListener);
+        // Add some listeners to the states of the switches
+        mPubRsColorSwitch.setOnCheckedChangeListener(this);
+        mPubRsDepthSwitch.setOnCheckedChangeListener(this);
+        mPubFisheyeSwitch.setOnCheckedChangeListener(this);
+        mPubTFSwitch.setOnCheckedChangeListener(this);
+        mPubSensorSwitch.setOnCheckedChangeListener(this);
 
-        Button talkerStartBtn = (Button)findViewById(R.id.talkerStartBtn);
-        talkerStartBtn.setOnClickListener(startTalkerListener);
-        Button talkerStopBtn = (Button)findViewById(R.id.talkerStopBtn);
-        talkerStopBtn.setOnClickListener(stopTalkerListener);
+        // Keep track of timestamps when images published, so corresponding TFs can be published too
+        mDepthStamps = new ConcurrentLinkedDeque<>();
 
-        listenerView = (TextView)findViewById(R.id.listenerTv);
-        listenerView.setMovementMethod(new ScrollingMovementMethod());
+        // Start an instance of the LoomoRosBridgeNode
+        loomoRosListenerNode = new LoomoRosListenerNode();
+
+//        // get Vision SDK instance
+//        mVision = Vision.getInstance();
+//        mVision.bindService(this, mBindVisionListener);
+//
+//        // get Sensor SDK instance
+//        mSensor = Sensor.getInstance();
+//        mSensor.bindService(this, mBindStateListener);
+//
+
+        // get Locomotion SDK instance
+        mBase = Base.getInstance();
+        mBase.bindService(this, new ServiceBinder.BindStateListener() {
+            @Override
+            public void onBind() {
+                Log.d(TAG, "mBindLocomotionListener onBind() called");
+                if (loomoBaseRosListenerBinder == null) {
+                    Log.d(TAG, "mBindLocomotionListener creating LocomotionSubscriber instance.");
+                    loomoBaseRosListenerBinder = new LoomoBaseRosListenerBinder(mBase, loomoRosListenerNode);
+                    Log.d(TAG, "mBindLocomotionListener created LocomotionSubscriber instance.");
+                }
+                loomoBaseRosListenerBinder.start_listening();
+            }
+
+            @Override
+            public void onUnbind(String reason) {
+                Log.d(TAG, "onUnbind() called with: reason = [" + reason + "]");
+            }
+        });
 
         RCLJava.rclJavaInit();
 
-        listenerNode =
-                new ListenerNode("ros2galacticnode_listener", "/chatter", listenerView);
-
-        talkerNode = new TalkerNode("ros2galacticnode_talker", "/chatter");
-
-        changeListenerState(false);
-        changeTalkerState(false);
+        Toast.makeText(getApplicationContext(), "Connected to ROS master at URI: " + params.getMasterURI(), Toast.LENGTH_LONG).show();
     }
 
-    // Create an anonymous implementation of OnClickListener
-    private OnClickListener startListenerListener = new OnClickListener() {
-        public void onClick(final View view) {
-            Log.d(logtag, "onClick() called - start listener button");
-            changeListenerState(true);
-        }
-    };
 
-    // Create an anonymous implementation of OnClickListener
-    private OnClickListener stopListenerListener = new OnClickListener() {
-        public void onClick(final View view) {
-            Log.d(logtag, "onClick() called - stop listener button");
-            changeListenerState(false);
-        }
-    };
-
-    private OnClickListener startTalkerListener = new OnClickListener() {
-        public void onClick(final View view) {
-            Log.d(logtag, "onClick() called - start talker button");
-            Log.d(logtag, String.valueOf(lock.isHeld()));
-            changeTalkerState(true);
-        }
-    };
-
-    // Create an anonymous implementation of OnClickListener
-    private OnClickListener stopTalkerListener = new OnClickListener() {
-        public void onClick(final View view) {
-            Log.d(logtag, "onClick() called - stop talker button");
-            Log.d(logtag, String.valueOf(lock.isHeld()));
-            changeTalkerState(false);
-        }
-    };
-
-    private void changeListenerState(boolean isWorking) {
-        this.isWorkingListener = isWorking;
-        Button buttonStart = (Button)findViewById(R.id.listenerStartBtn);
-        Button buttonStop = (Button)findViewById(R.id.listenerStopBtn);
-        buttonStart.setEnabled(!isWorking);
-        buttonStop.setEnabled(isWorking);
-        if (isWorking){
-            getExecutor().addNode(listenerNode);
-        } else {
-            getExecutor().removeNode(listenerNode);
-        }
-    }
-
-    private void changeTalkerState(boolean isWorking) {
-        this.isWorkingTalker = isWorking;
-        Button buttonStart = (Button)findViewById(R.id.talkerStartBtn);
-        Button buttonStop = (Button)findViewById(R.id.talkerStopBtn);
-        buttonStart.setEnabled(!isWorking);
-        buttonStop.setEnabled(isWorking);
-        if (isWorking){
-            getExecutor().addNode(talkerNode);
-            talkerNode.start();
-
-            std_msgs.msg.String msg = new std_msgs.msg.String();
-            msg.setData("START publishing !!! ytay!!!!");
-            talkerNode.publisher.publish(msg);
-        } else {
-            talkerNode.stop();
-            getExecutor().removeNode(talkerNode);
-        }
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -159,5 +158,55 @@ public class MainActivity extends ROSActivity {
             lock.release();
         }
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+        Log.d(TAG, "onCheckedChanged -- someone has clicked a button");
+        // Someone has clicked a button - handle it here
+        switch (compoundButton.getId()) {
+            case R.id.rscolor:
+//                mRealsensePublisher.mIsPubRsColor = isChecked;
+//                if (isChecked) {
+//                    mRealsensePublisher.start_color();
+//                } else {
+//                    mRealsensePublisher.stop_color();
+//                }
+                break;
+            case R.id.rsdepth:
+//                mRealsensePublisher.mIsPubRsDepth = isChecked;
+//                if (isChecked) {
+//                    mRealsensePublisher.start_depth();
+//                } else {
+//                    mRealsensePublisher.stop_depth();
+//                }
+                break;
+            case R.id.fisheye:
+//                mRealsensePublisher.mIsPubFisheye = isChecked;
+//                if (isChecked) {
+//                    mRealsensePublisher.start_fisheye();
+//                } else {
+//                    mRealsensePublisher.stop_fisheye();
+//                }
+                break;
+            case R.id.tf:
+                Log.d(TAG, "TF clicked.");
+//                mTFPublisher.mIsPubTF = isChecked;
+//                if (isChecked) {
+//                    mTFPublisher.start_tf();
+//                } else {
+//                    mTFPublisher.stop_tf();
+//                }
+                break;
+            case R.id.sensor:
+                Log.d(TAG, "Sensor clicked.");
+//                mSensorPublisher.mIsPubSensor = isChecked;
+//                if (isChecked) {
+//                    mSensorPublisher.start_sensor();
+//                } else {
+//                    mSensorPublisher.stop_sensor();
+//                }
+                break;
+        }
     }
 }

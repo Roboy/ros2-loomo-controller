@@ -1,0 +1,43 @@
+---
+# IN ORDER TO USE THIS FILE: make sure it is also located in /sdcard/params.yaml on the Loomo
+# If not already, run: adb push params.yaml /sdcard/
+
+# MainActivity.java
+masterURI: http://192.168.42.111:11311/ # not needed with ros2
+ntpServerIP: 192.168.42.111
+
+# RealsensePublisher.java
+rsDepthOpticalFrame: rs_depth_optical_frame
+rsColorOpticalFrame: rs_color_optical_frame
+fisheyeOpticalFrame: fisheye_optical_frame
+
+mRsColorWidth: 640
+mRsColorHeight: 480
+mRsDepthWidth: 320
+mRsDepthHeight: 240
+mFisheyeWidth: 640
+mFisheyeHeight: 480
+
+# LoomoRosBridgeNode.java
+nodeName: loomo_ros_bridge_node
+tfPrefix: LO01
+
+shouldPubUltrasonic: false
+shouldPubInfrared: false
+shouldPubBasePitch: true
+useTfPrefix: true
+
+mFisheyeCamPubrTopic: /fisheye/rgb
+mFisheyeCompressedPubrTopic: /fisheye/rgb/compressed
+mFisheyeCamInfoPubrTopic: /fisheye/camera_info
+mRsColorPubrTopic: /realsense_loomo/rgb
+mRsColorCompressedPubrTopic: /realsense_loomo/rgb/compressed
+mRsColorInfoPubrTopic: /realsense_loomo/rgb/camera_info
+mRsDepthPubrTopic: /realsense_loomo/depth
+mRsDepthInfoPubrTopic: /realsense_loomo/depth/camera_info
+mTfPubrTopic: /tf
+mInfraredPubrTopic: /infrared
+mUltrasonicPubrTopic: /ultrasonic
+mBasePitchPubrTopic: /base_pitch
+
+mCmdVelSubrTopic: /cmd_vel

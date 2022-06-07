@@ -3,7 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.2085" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3671875" />
+        <entry key="app/src/main/res/layout/loomo_ros2_controller.xml" value="0.19610507246376813" />
         <entry key="app/src/main/res/layout/main.xml" value="0.35625" />
       </map>
     </option>

@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">ros2-android-test-app</string>
+    <string name="app_name">Loomo ROS</string>
+    <string name="pub_rscolor">Pub RsColor:</string>
+    <string name="pub_rsdepth">Pub RsDepth:</string>
+    <string name="pub_fisheye">Pub Fisheye:</string>
+    <string name="pub_tf">Pub TF:</string>
+    <string name="pub_sensor">Pub Sensor:</string>
+    <string name="pub_spr">Pub Speech:</string>
+    <string name="sub_motion">Sub Motion:</string>
+    <string name="kill_app_text">Kill App!</string>
 </resources>

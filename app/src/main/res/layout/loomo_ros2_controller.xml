@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rscolor"
+            android:text="@string/pub_rscolor"/>
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rsdepth"
+            android:text="@string/pub_rsdepth"/>
+
+        <Switch
+            android:id="@+id/fisheye"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pub_fisheye" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/tf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pub_tf" />
+
+        <Switch
+            android:id="@+id/sensor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pub_sensor" />
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/speech"
+            android:text="@string/pub_spr"/>
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/motion"
+            android:text="@string/sub_motion"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/timeoffset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NTP time offset" />
+
+    <Button
+        android:id="@+id/killapp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/kill_app_text" />
+
+<!--    <org.ros.android.view.camera.RosCameraPreviewView-->
+<!--        android:id="@+id/ros_camera_preview_view"-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="fill_parent" />-->
+
+</LinearLayout>
