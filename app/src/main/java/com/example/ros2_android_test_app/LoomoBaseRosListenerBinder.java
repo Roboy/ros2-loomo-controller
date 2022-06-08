@@ -22,6 +22,8 @@ public class LoomoBaseRosListenerBinder {
         // Configure Base to accept raw linear/angular velocity commands
         this.mBase.setControlMode(Base.CONTROL_MODE_RAW);
 
+//        this.mBase.setUltrasonicObstacleAvoidanceEnabled(true);
+
     }
 
     public void start_listening(){
