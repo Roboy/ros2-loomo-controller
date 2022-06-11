@@ -7,15 +7,19 @@ The project is based on these two projects:
 - [ros2-android-test-app](https://github.com/YasuChiba/ros2-android-test-app)
 
 # How to use the project
+You can download and install the latest apk release to Loomo and make changes to `params.yaml` for further configuration. See `Configuration` below for details on configuring.
+
+To build the project locally continue with the below steps.
 
 ## RCL Java dependencies
 This project uses rcl java client build from rclcpp. The .`*.jar` files coming from there are already included under `/app/libs` however the native `*.so` are too large. So you should either 
 - Build them from scratch following https://github.com/Roboy/ros2-android-build
 - Or ask from a team member (e.g. @meverg)
 
-## Installing
+## Installation
 You can install, run and debug like a usual Android project via Android Stuido or adb cli tool.
 
+## Configuration
 As with [ros1 android loomo controller](https://github.com/mit-acl/android_loomo_ros_core) this project is configured with `params.yaml` file too. So make sure the `params.yaml` file located at the root directory of the repo is also on the Loomo at `/sdcard/params.yaml`. This can be done by running: 
 > `adb push params.yaml /sdcard/`
 
