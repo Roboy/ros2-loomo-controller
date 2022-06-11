@@ -5,6 +5,8 @@ import android.util.Log;
 import com.segway.robot.sdk.locomotion.sbv.Base;
 import android.os.Handler;
 
+import org.ros2.rcljava.RCLJava;
+
 /**
  * Created by mfe on 7/24/18.
  */
@@ -37,6 +39,7 @@ public class LoomoBaseRosListenerBinder {
                     mBase.setLinearVelocity((float)msg.getLinear().getX());
                     mBase.setAngularVelocity((float)msg.getAngular().getZ());
                 });
+                RCLJava.spin(loomoRosListenerNode);
             }
         };
         handler.postDelayed(r, 5000);
