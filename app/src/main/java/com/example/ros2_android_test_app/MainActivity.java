@@ -1,5 +1,6 @@
 package com.example.ros2_android_test_app;
 
+import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -76,9 +77,9 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.loomo_ros2_controller);
 
-//        final WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-//        lock = wifi.createMulticastLock("ssdp");
-//        lock.acquire();
+        final WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        lock = wifi.createMulticastLock("ssdp");
+        lock.acquire();
 
         // Add a button to show the NTP time offset when clicked
 //        mTimeOffsetButton = (Button) findViewById(R.id.timeoffset);
