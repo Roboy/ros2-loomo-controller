@@ -16,6 +16,18 @@ This project uses rcl java client build from rclcpp. The .`*.jar` files coming f
 - Build them from scratch following https://github.com/Roboy/ros2-android-build
 - Or ask from a team member (e.g. @meverg)
 
+> WATCH OUT
+>
+> As ros2-java README points out: 
+>
+> [Make sure to use Fast-RTPS as your DDS vendor and at least this revision.](https://github.com/ros2-java/ros2_java#including-android)
+> 
+> So add the snippet below in your `~/.bashrc` file
+> ```
+> # This ros2 middleware implementation is a must-have for compliance with the ros2-java client
+> export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+> ```
+
 ## Installation
 You can install, run and debug like a usual Android project via Android Stuido or adb cli tool.
 
