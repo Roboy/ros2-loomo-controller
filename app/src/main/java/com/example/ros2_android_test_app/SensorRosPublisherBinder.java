@@ -2,6 +2,8 @@ package com.example.ros2_android_test_app;
 
 import android.util.Log;
 
+import androidx.lifecycle.MutableLiveData;
+
 import com.segway.robot.sdk.perception.sensor.Sensor;
 import com.segway.robot.sdk.perception.sensor.SensorData;
 
@@ -12,10 +14,12 @@ public class SensorRosPublisherBinder {
 
   private final Sensor mSensor;
   private final SensorPublisherNode sensorPublisherNode;
+  private final MutableLiveData<Boolean> emergencyStopLiveData;
 
-  public SensorRosPublisherBinder(Sensor mSensor, SensorPublisherNode sensorPublisherNode) {
+  public SensorRosPublisherBinder(Sensor mSensor, SensorPublisherNode sensorPublisherNode, MutableLiveData<Boolean> emergencyStopLiveData) {
     this.mSensor = mSensor;
     this.sensorPublisherNode = sensorPublisherNode;
+    this.emergencyStopLiveData = emergencyStopLiveData;
 
     this.sensorPublisherNode.setUltrasonicSampler(this::sampleUltrasonicDistanceInCentimeters);
   }
@@ -43,6 +47,7 @@ public class SensorRosPublisherBinder {
             + mUltrasonicDistanceInCentimeters
             + "\n");
 
+    this.emergencyStopLiveData.postValue(mUltrasonicDistanceInCentimeters < 50);
     return mUltrasonicDistanceInCentimeters;
   }
 }

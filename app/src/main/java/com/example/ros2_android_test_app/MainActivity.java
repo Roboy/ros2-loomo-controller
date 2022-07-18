@@ -10,6 +10,9 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+
 import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.sbv.Base;
 import com.segway.robot.sdk.perception.sensor.Sensor;
@@ -19,12 +22,16 @@ import org.ros2.rcljava.RCLJava;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import std_msgs.msg.Bool;
+
 public class MainActivity extends ROSActivity implements CompoundButton.OnCheckedChangeListener {
   public static final String TAG = "MainRosActivity";
 
   //    private Vision mVision;
   private Sensor mSensor;
   private Base mBase;
+
+  private MutableLiveData<Boolean> emergencyStopLiveData = new MutableLiveData<Boolean>();
 
   //    private Button mKillAppButton;
   //    private Button mTimeOffsetButton;
@@ -134,7 +141,7 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
             if (loomoSensorRosPublisherBinder == null) {
               Log.d(TAG, "creating loomoSensorRosPublisherBinder instance.");
               loomoSensorRosPublisherBinder =
-                  new SensorRosPublisherBinder(mSensor, sensorPublisherNode);
+                  new SensorRosPublisherBinder(mSensor, sensorPublisherNode, emergencyStopLiveData);
             }
           }
 
@@ -146,6 +153,15 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
             sensorPublisherNode.stopUltrasonicPublisher();
           }
         });
+
+    emergencyStopLiveData.observe(this, new Observer<Boolean>() {
+      @Override
+      public void onChanged(Boolean emergencyStop) {
+        if(loomoBaseRosListenerBinder != null){
+          loomoBaseRosListenerBinder.setEmergencyStop(emergencyStop);
+        }
+      }
+    });
 
     Log.d(TAG, "adding loomoRosListenerNode to the executor");
     getExecutor().addNode(loomoRosListenerNode);
