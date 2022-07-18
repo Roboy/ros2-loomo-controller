@@ -16,12 +16,23 @@ public class SensorRosPublisherBinder {
   private final SensorPublisherNode sensorPublisherNode;
   private final MutableLiveData<Boolean> emergencyStopLiveData;
 
+  private double emergencyStopThreshold = 50.0;
+
   public SensorRosPublisherBinder(Sensor mSensor, SensorPublisherNode sensorPublisherNode, MutableLiveData<Boolean> emergencyStopLiveData) {
     this.mSensor = mSensor;
     this.sensorPublisherNode = sensorPublisherNode;
     this.emergencyStopLiveData = emergencyStopLiveData;
 
     this.sensorPublisherNode.setUltrasonicSampler(this::sampleUltrasonicDistanceInCentimeters);
+  }
+
+  public double getEmergencyStopThreshold() {
+    return emergencyStopThreshold;
+  }
+
+
+  public void setEmergencyStopThreshold(double emergencyStopThreshold) {
+    this.emergencyStopThreshold = emergencyStopThreshold;
   }
 
   public float sampleUltrasonicDistanceInCentimeters() {
@@ -47,7 +58,7 @@ public class SensorRosPublisherBinder {
             + mUltrasonicDistanceInCentimeters
             + "\n");
 
-    this.emergencyStopLiveData.postValue(mUltrasonicDistanceInCentimeters < 50);
+    this.emergencyStopLiveData.postValue(mUltrasonicDistanceInCentimeters < emergencyStopThreshold);
     return mUltrasonicDistanceInCentimeters;
   }
 }

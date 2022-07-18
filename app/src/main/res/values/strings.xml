@@ -8,4 +8,6 @@
     <string name="pub_spr">Pub Speech:</string>
     <string name="sub_motion">Sub Motion:</string>
     <string name="kill_app_text">Kill App!</string>
+    <string name="disabled_emergency">Enable Emergency Stop</string>
+    <string name="enabled_emergency">Disable Emergency Stop</string>
 </resources>

@@ -17,6 +17,15 @@ public class LoomoBaseRosListenerBinder {
 
     private boolean emergencyStop = false;
 
+
+    public void setEmergencyStopEnabled(boolean emergencyStopEnabled) {
+        this.emergencyStopEnabled = emergencyStopEnabled;
+    }
+
+    private boolean emergencyStopEnabled = true;
+
+
+
     public LoomoBaseRosListenerBinder(Base mBase, LoomoRosListenerNode loomoRosListenerNode) {
         this.mBase = mBase;
         this.loomoRosListenerNode = loomoRosListenerNode;
@@ -34,7 +43,7 @@ public class LoomoBaseRosListenerBinder {
                                     + msg.getAngular().getZ());
                     float linear_velocity = (float) msg.getLinear().getX();
                     float angular_velocity = (float) msg.getAngular().getZ();
-                    if(linear_velocity < 0f || !this.emergencyStop){
+                    if(linear_velocity < 0f || !this.emergencyStop || !this.emergencyStopEnabled){
                         mBase.setLinearVelocity(linear_velocity);
                         mBase.setAngularVelocity(angular_velocity);
                     }
