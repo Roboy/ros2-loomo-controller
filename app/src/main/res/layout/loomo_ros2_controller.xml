@@ -7,7 +7,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
         <Switch
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -31,7 +32,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <Switch
             android:id="@+id/tf"
@@ -63,13 +65,48 @@
         android:id="@+id/timeoffset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="NTP time offset" />
+        android:text="NTP time offset"
+        android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/killapp"
+    <TextView
+        android:id="@+id/emergency_stop_button"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="@string/enabled_emergency"
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        />
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/kill_app_text" />
+        android:orientation="horizontal">
+        <com.google.android.material.slider.Slider
+            android:id="@+id/emergency_stop_slider"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="20dp" />
+        <TextView
+            android:id="@+id/emergency_stop_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:text="50"
+            android:textSize="20sp"
+            android:gravity="center"/>
+    </LinearLayout>>
+    <TextView
+        android:id="@+id/killapp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#f00"
+        android:text="@string/kill_app_text"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:textSize="40sp"
+        android:layout_margin="30dp"/>
 
 <!--    <org.ros.android.view.camera.RosCameraPreviewView-->
 <!--        android:id="@+id/ros_camera_preview_view"-->
