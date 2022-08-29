@@ -125,6 +125,8 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
     sensorPublisherNode = new SensorPublisherNode();
 
     mBase = Base.getInstance();
+    mSensor = Sensor.getInstance();
+
     mBase.bindService(
         this,
         new ServiceBinder.BindStateListener() {
@@ -134,7 +136,7 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
             if (loomoBaseRosListenerBinder == null) {
               Log.d(TAG, "creating LoomoBaseRosListenerBinder instance.");
               loomoBaseRosListenerBinder =
-                  new LoomoBaseRosListenerBinder(mBase, loomoRosListenerNode);
+                  new LoomoBaseRosListenerBinder(mBase, mSensor, loomoRosListenerNode);
             }
           }
 
@@ -144,7 +146,6 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
           }
         });
 
-    mSensor = Sensor.getInstance();
     mSensor.bindService(
         this,
         new ServiceBinder.BindStateListener() {
@@ -204,8 +205,8 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
         //Use the value
         double adjusted_value = MIN_ULTRASONIC + (value * (MAX_ULTRASONIC - MIN_ULTRASONIC));
         emergencyFieldTextView.setText("" + (int) adjusted_value);
-        if(loomoSensorRosPublisherBinder!=null){
-          loomoSensorRosPublisherBinder.setEmergencyStopThreshold(adjusted_value);
+        if(loomoBaseRosListenerBinder!=null){
+          loomoBaseRosListenerBinder.setEmergencyStopThreshold(adjusted_value);
         }
       }
     });

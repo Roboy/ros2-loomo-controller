@@ -58,7 +58,6 @@ public class SensorRosPublisherBinder {
             + mUltrasonicDistanceInCentimeters
             + "\n");
 
-    this.emergencyStopLiveData.postValue(mUltrasonicDistanceInCentimeters < emergencyStopThreshold);
     return mUltrasonicDistanceInCentimeters;
   }
 }
