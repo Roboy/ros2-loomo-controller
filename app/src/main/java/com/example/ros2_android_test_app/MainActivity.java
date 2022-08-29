@@ -1,15 +1,22 @@
 package com.example.ros2_android_test_app;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+
+import com.google.android.material.slider.Slider;
 import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.sbv.Base;
 import com.segway.robot.sdk.perception.sensor.Sensor;
@@ -21,10 +28,15 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class MainActivity extends ROSActivity implements CompoundButton.OnCheckedChangeListener {
   public static final String TAG = "MainRosActivity";
+  public static final double MIN_ULTRASONIC = 25.0;
+  public static final double MAX_ULTRASONIC = 150.0;
 
   //    private Vision mVision;
   private Sensor mSensor;
   private Base mBase;
+  private boolean emergencyEnabled = true;
+
+  private MutableLiveData<Boolean> emergencyStopLiveData = new MutableLiveData<Boolean>();
 
   //    private Button mKillAppButton;
   //    private Button mTimeOffsetButton;
@@ -32,6 +44,10 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
   //    public NtpTimeProvider mNtpTimeProvider;
   //    private NtpTimeProvider ntpTimeProvider;
 
+  private TextView killAppButton;
+  private TextView emergencyStopEnabledButton;
+  private TextView emergencyFieldTextView;
+  private Slider emergencyStopSlider;
   private Switch mPubRsColorSwitch;
   private Switch mPubRsDepthSwitch;
   private Switch mPubFisheyeSwitch;
@@ -88,6 +104,10 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
     mPubFisheyeSwitch = (Switch) findViewById(R.id.fisheye);
     mPubTFSwitch = (Switch) findViewById(R.id.tf);
     mPubSensorSwitch = (Switch) findViewById(R.id.sensor);
+    killAppButton = (TextView) findViewById(R.id.killapp);
+    emergencyStopEnabledButton = (TextView) findViewById(R.id.emergency_stop_button);
+    emergencyStopSlider = (Slider) findViewById(R.id.emergency_stop_slider);
+    emergencyFieldTextView = (TextView) findViewById(R.id.emergency_stop_text_view);
 
     // Add some listeners to the states of the switches
     mPubRsColorSwitch.setOnCheckedChangeListener(this);
@@ -105,6 +125,8 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
     sensorPublisherNode = new SensorPublisherNode();
 
     mBase = Base.getInstance();
+    mSensor = Sensor.getInstance();
+
     mBase.bindService(
         this,
         new ServiceBinder.BindStateListener() {
@@ -114,7 +136,7 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
             if (loomoBaseRosListenerBinder == null) {
               Log.d(TAG, "creating LoomoBaseRosListenerBinder instance.");
               loomoBaseRosListenerBinder =
-                  new LoomoBaseRosListenerBinder(mBase, loomoRosListenerNode);
+                  new LoomoBaseRosListenerBinder(mBase, mSensor, loomoRosListenerNode);
             }
           }
 
@@ -124,7 +146,6 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
           }
         });
 
-    mSensor = Sensor.getInstance();
     mSensor.bindService(
         this,
         new ServiceBinder.BindStateListener() {
@@ -134,7 +155,7 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
             if (loomoSensorRosPublisherBinder == null) {
               Log.d(TAG, "creating loomoSensorRosPublisherBinder instance.");
               loomoSensorRosPublisherBinder =
-                  new SensorRosPublisherBinder(mSensor, sensorPublisherNode);
+                  new SensorRosPublisherBinder(mSensor, sensorPublisherNode, emergencyStopLiveData);
             }
           }
 
@@ -146,6 +167,58 @@ public class MainActivity extends ROSActivity implements CompoundButton.OnChecke
             sensorPublisherNode.stopUltrasonicPublisher();
           }
         });
+
+    emergencyStopLiveData.observe(this, new Observer<Boolean>() {
+      @Override
+      public void onChanged(Boolean emergencyStop) {
+        if(loomoBaseRosListenerBinder != null){
+          loomoBaseRosListenerBinder.setEmergencyStop(emergencyStop);
+        }
+      }
+    });
+
+    emergencyStopEnabledButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        boolean currentState = emergencyEnabled;
+        emergencyEnabled = !emergencyEnabled;
+        if(loomoBaseRosListenerBinder != null){
+          loomoBaseRosListenerBinder.setEmergencyStopEnabled(!currentState);
+        }
+        if(currentState){
+          emergencyStopEnabledButton.setText(R.string.disabled_emergency);
+          emergencyStopEnabledButton.setBackgroundColor(getResources().getColor(R.color.grey));
+          emergencyStopEnabledButton.setTextColor(getResources().getColor(R.color.black));
+        }
+        else{
+          emergencyStopEnabledButton.setText(R.string.enabled_emergency);
+          emergencyStopEnabledButton.setBackgroundColor(getResources().getColor(R.color.purple_500));
+          emergencyStopEnabledButton.setTextColor(getResources().getColor(R.color.white));
+        }
+      }
+    });
+
+    emergencyStopSlider.addOnChangeListener(new Slider.OnChangeListener() {
+      @SuppressLint("RestrictedApi")
+      @Override
+      public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+        //Use the value
+        double adjusted_value = MIN_ULTRASONIC + (value * (MAX_ULTRASONIC - MIN_ULTRASONIC));
+        emergencyFieldTextView.setText("" + (int) adjusted_value);
+        if(loomoBaseRosListenerBinder!=null){
+          loomoBaseRosListenerBinder.setEmergencyStopThreshold(adjusted_value);
+        }
+      }
+    });
+
+    killAppButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        MainActivity.this.finish();
+      }
+    });
+
+
 
     Log.d(TAG, "adding loomoRosListenerNode to the executor");
     getExecutor().addNode(loomoRosListenerNode);
