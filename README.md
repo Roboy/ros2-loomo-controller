@@ -14,7 +14,7 @@ To build the project locally continue with the below steps.
 ## RCL Java dependencies
 This project uses rcl java client build from rclcpp. The .`*.jar` files coming from there are already included under `/app/libs` however the native `*.so` are too large. So you should either 
 - Build them from scratch following https://github.com/Roboy/ros2-android-build
-- Or ask from a team member (e.g. @meverg)
+- Or download from a large dependency release named like `vX.Y.Z-so_files` and copy the folder to respective `jniLibs/<android-processor-architecture>` place. e.g. `jniLibs/x86_64` for Loomo
 
 > WATCH OUT
 >
